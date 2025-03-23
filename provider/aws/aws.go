@@ -834,7 +834,7 @@ func (p *AWSProvider) AdjustEndpoints(endpoints []*endpoint.Endpoint) ([]*endpoi
 
 		// Trim endpoints that exceed the maximum configured value
 		if limitStr, ok := ep.GetProviderSpecificProperty(providerSpecificTargetsLimit); ok {
-			if limit, err := strconv.ParseInt(limitStr, 10, 64); err == nil && limit > int64(len(ep.Targets)) {
+			if limit, err := strconv.ParseInt(limitStr, 10, 64); err == nil && limit < int64(len(ep.Targets)) {
 				// Sort targets in a deterministic order
 				sort.Strings(ep.Targets)
 				ep.Targets = ep.Targets[:limit]
