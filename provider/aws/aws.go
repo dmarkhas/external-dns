@@ -62,6 +62,7 @@ const (
 	providerSpecificGeolocationSubdivisionCode = "aws/geolocation-subdivision-code"
 	providerSpecificMultiValueAnswer           = "aws/multi-value-answer"
 	providerSpecificHealthCheckID              = "aws/health-check-id"
+	providerSpecificTargetsLimit               = "aws/targets-limit"
 	sameZoneAlias                              = "same-zone"
 	// Currently supported up to 10 health checks or hosted zones.
 	// https://docs.aws.amazon.com/Route53/latest/APIReference/API_ListTagsForResources.html#API_ListTagsForResources_RequestSyntax
@@ -829,6 +830,15 @@ func (p *AWSProvider) AdjustEndpoints(endpoints []*endpoint.Endpoint) ([]*endpoi
 			}
 		} else {
 			ep.DeleteProviderSpecificProperty(providerSpecificEvaluateTargetHealth)
+		}
+
+		// Trim endpoints that exceed the maximum configured value
+		if limitStr, ok := ep.GetProviderSpecificProperty(providerSpecificTargetsLimit); ok {
+			if limit, err := strconv.ParseInt(limitStr, 10, 64); err == nil && limit > int64(len(ep.Targets)) {
+				// Sort targets in a deterministic order
+				sort.Strings(ep.Targets)
+				ep.Targets = ep.Targets[:limit]
+			}
 		}
 	}
 
